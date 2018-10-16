@@ -39,3 +39,12 @@ Edit `sonar.yaml` to set the parameters.
 ```
 ./start-sonar.sh
 ```
+
+## Run SonarQube Analysis
+
+Copy `run-sonar-analsys.sh` into your Java project alongside `pom.xml`. Then
+run it.
+
+```
+./run-sonar-analysis.sh
+```
