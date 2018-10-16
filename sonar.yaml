@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: SonarQube
+
+Parameters:
+  rKeyname:
+    Type: String
+    Default: your-key
+  rVPC:
+    Type: String
+    Default: vpc-0b716fe8f45fb7999
+  rSubnet:
+    Type: String
+    Default: subnet-0176f2b8176cfe999
+  rAMI:
+    Type: String
+    Default: ami-0922553b7b0369273
+  rInstanceSize:
+    Type: String
+    Default: t3.medium
+
+Resources:
+  rIncomingSonarSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow access to Sonar by everyone."
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 9000
+          ToPort: 9000
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Join [ ":", [ !Ref "AWS::StackName", sg-incoming-sonar ] ]
+      VpcId: !Ref rVPC
+
+  rEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref rAMI
+      InstanceType: !Ref rInstanceSize
+      KeyName: !Ref rKeyname
+      Tags:
+      - Key: Name
+        Value: sonar
+      NetworkInterfaces:
+      - AssociatePublicIpAddress: true
+        DeviceIndex: "0"
+        GroupSet:
+          - !Ref rIncomingSonarSecurityGroup
+        SubnetId: !Ref rSubnet
+      UserData:
+        'Fn::Base64': !Sub |
+          #!/bin/bash -ex
+          yum update -y
+          wget -O /etc/yum.repos.d/sonar.repo http://downloads.sourceforge.net/project/sonar-pkg/rpm/sonar.repo
+          yum install -y java-1.8.0-openjdk-devel sonar
+          service sonar start
+          chkconfig sonar on
+          touch /userdata.complete
+Outputs:
+  InstanceId:
+    Description: InstanceId of the newly created EC2 instance
+    Value: !Ref rEC2
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", InstanceId ] ]
+  PublicIP:
+    Description: Public IP address of the newly created EC2 instance
+    Value: !GetAtt rEC2.PublicIp
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", PublicIp ] ]
