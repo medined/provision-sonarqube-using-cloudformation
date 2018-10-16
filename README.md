@@ -12,6 +12,24 @@ be fine.
 
 As always, please adjust the files to your situation.
 
+## Steps in the Process
+
+* Generate random password.
+* Save password to Parameter Store.
+* Execute the CloudFormation stack.
+* Get IP of SonarQube server.
+* Wait for server to respond to API request.
+* Wait until server is no longer STARTING.
+* Verify server is responding with UP.
+* Get password from Parameter Store.
+* Change the default password.
+* Get a sonar token.
+* Save token in Parameter Store.
+
+Originally the random password was generated in a different script. The
+Parameter Store was used to eliminate having the password appear in the
+Git repository.
+
 ## Configuration
 
 Edit `sonar.yaml` to set the parameters.
